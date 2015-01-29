@@ -1,0 +1,14 @@
+* Provide default EventHandlers to just drop debug msgs to a 
+	stream template<> parm. Easy debug for users.
+
+* add some const mods all around wherever they make sense.
+
+* Doxygen
+
+* Make all exceptions checked.
+
+* Mail fam-list about getting err[] strings working in fam.h
+	Add this support back into fam++ header.
+
+
+

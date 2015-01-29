@@ -1,0 +1,106 @@
+6.0.1
+
+2009-10-16  monkeyiq  <monkeyiq@users.sourceforge.net>
+
+	* updates for sigc++ 2.2
+	
+5.1.1
+
+2006-03-22  monkeyiq  <monkeyiq@users.sourceforge.net>
+
+	* Released 5.1.0
+	  Optional ability to build against libsigc++-2.x
+	
+5.1.0
+
+2006-03-22  monkeyiq  <monkeyiq@users.sourceforge.net>
+
+	* Optional ability to build against libsigc++-2.x
+
+2005-11-09  monkeyiq  <monkeyiq@users.sourceforge.net>
+
+	* released 5.0.0
+	
+5.0.0
+
+2005-11-09  monkeyiq  <monkeyiq@users.sourceforge.net>
+
+	* Moved to using ferrisloki for more consistent smartpointer handling.
+	
+4.0.0
+
+2005-09-06  monkeyiq  <monkeyiq@users.sourceforge.net>
+
+	* Made STLport optional
+	
+(3.5.2)
+	
+2005-02-03  monkeyiq  <monkeyiq@users.sourceforge.net>
+
+	* cleanups to pkg-config file
+
+2004-05-31  monkeyiq  <monkeyiq@users.sourceforge.net>
+
+	* Updates for gcc 3.4 compilation
+
+(3.5.0)
+	Mon Aug 18, 2003 @  6:34 PM
+	Changed some of the factory use to avoid ICE in gcc 3.3+
+
+(3.3.1)
+	Mon May 19, 2003 @ 12:33 PM
+	Moved to using libsigc++ 1.2 and some dist changes for rh9
+
+Sat Feb 23 01:57:36 EST 2002 (2.2.1)
+	* added more includes to headers to make them more self contained. fixed exception specs to make gcc3
+          happier, though I have not done a 100% gcc3 compile/test yet.
+
+
+Fri Sep 28 03:27:52 EST 2001
+	* Changed the lib to only need glib2, not gtk2
+
+
+Sat Sep  8 03:06:19 EST 2001 (2.1.0)
+	* Improved some exception specs with throw()
+	* Ported to STLport 4.0
+
+
+Sun Aug 26 20:44:40 EST 2001 (VERSION2 2.0.0)
+	
+	* Moved to using loki.
+	* Cleaned up code
+
+-----------------------------------------------------------
+
+
+27-Oct-2000 Ben Martin  (VERSION 0.0.3)
+
+	* Added FamSingleton class to header. See gpdial_applet for an example of usage (check freshmeat).
+	* Added getInstance_gnome_and_wait_user_wants_to_quit exception and getInstance_gnome_and_wait().
+		getInstance_gnome_and_wait will keep polling for fam to be available, and also show
+		a dialog box so that the user can close the application if fam does not become available.
+
+23-Oct-2000 Ben Martin
+
+	* Created famstatic.hh after I started using this wrapper in
+	  anger. I found that there were issues with non template functions
+	  being multiply defined. Old code will need to include famstatic.hh
+	  now. I don't think anyone is using fam++ at the moment though :-0
+
+	* Updated the examples to use famstatic.hh too.
+
+
+9-July-2000 Ben Martin
+
+	* Fixed bug where fampp would keep a stale reference to
+		each FamppRequest even after the FamppRequest was deleted().
+
+	* Fixed bug where after FamppRequest lookup in fampp no check
+		was made if the request was == null. (possible segv was there).
+
+	* Added GPL COPYING and header comments to all cpp and header
+		files indicating GPL.
+
+	* Created a README
+
+	* Created this file

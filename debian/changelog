@@ -1,0 +1,6 @@
+fampp2 (7.0.2) unstable; urgency=low
+
+  * automated release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+  * update for n9 and freedombox
+
+ -- root <monkeyiq@users.sf.net>  Sat, 25 Feb 2012 15:25:44 +1000

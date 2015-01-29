@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: fampp2
+Description: C++ wrapper for fam/gamin library
+Version: @VERSION@
+Requires: @REQUIREMENTS@
+Libs: @STLPORT_LIBS@ @LOKI_LIBS@   -lfampp
+Cflags: @STLPORT_CFLAGS@  @LOKI_CFLAGS@  
+
+

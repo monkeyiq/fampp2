@@ -1,0 +1,22 @@
+Source: fampp2
+Priority: extra
+Maintainer: root <monkeyiq@users.sf.net>
+Build-Depends: debhelper (>= 5), autotools-dev, libpopt-dev
+Standards-Version: 3.7.2
+Section: libs
+
+Package: fampp2-dev
+Section: libdevel
+Architecture: any
+Depends: fampp21 (= ${Source-Version}), ferrisloki-dev, libglib2.0-dev, libpopt-dev, libgamin-dev
+Description: C++ wrapper for fam or gamin
+ A C++ system library that wraps fam or gamin using coding style that relies on 
+ the loki system library.
+
+Package: fampp21
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libgamin0, ferrisloki1
+Description: C++ wrapper for fam or gamin
+ A C++ system library that wraps fam or gamin using coding style that relies on 
+ the loki system library.

@@ -1,0 +1,17 @@
+A C++ wrapper for fam from sgi.
+fam can be found at http://oss.sgi.com/projects/fam/
+
+fam uses imon to inform it when inodes change, the net 
+effect being that applications can register interest
+in a file, and have events send to the application 
+when the file changes.
+
+The fam++ wrapper (hopefully) makes fam a little easier
+to use. It does this by using exceptions instead of 
+return values to indicate error, allow type safe
+callbacks using libsig++ and compile time checking.
+
+This is version 2 of fam++ which is non compatible with
+version 1. This is due to moving to loki and a cleanup
+of the API. The general use of fam++ will change in
+this version to hopefully make it simpler to use.
