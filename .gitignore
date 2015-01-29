@@ -21,5 +21,6 @@ mkinstalldirs
 missing
 ltmain.sh
 install-sh
+a.out
 
 
