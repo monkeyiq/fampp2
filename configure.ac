@@ -4,23 +4,21 @@ AC_PREREQ(2.13)
 
 AC_INIT(src/Fampp2.hh)
 
-FAMPPTWO_MAJOR=7
+PACKAGE=fampp2
+FAMPPTWO_MAJOR=9
 FAMPPTWO_MINOR=0
-FAMPPTWO_BETA=2
+FAMPPTWO_BETA=0
+FAMPP_VERSION=$FAMPPTWO_MAJOR.$FAMPPTWO_MINOR.$FAMPPTWO_BETA
+FAMPPTWO_FULLV=$FAMPP_VERSION
+LT_RELEASE=$FAMPPTWO_MAJOR.$FAMPPTWO_MINOR
+VERSION=$FAMPP_VERSION
 
 AC_SUBST(FAMPPTWO_MAJOR)
 AC_SUBST(FAMPPTWO_MINOR)
 AC_SUBST(FAMPPTWO_BETA)
-
-FAMPP_VERSION=$FAMPPTWO_MAJOR.$FAMPPTWO_MINOR.$FAMPPTWO_BETA
-FAMPPTWO_FULLV=$FAMPP_VERSION
 AC_SUBST(FAMPPTWO_FULLV)
 AC_SUBST(FAMPP_VERSION)
-LT_RELEASE=$FAMPPTWO_MAJOR.$FAMPPTWO_MINOR
 AC_SUBST(LT_RELEASE)
-
-VERSION=$FAMPP_VERSION
-PACKAGE=fampp2
 
 AM_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
@@ -34,26 +32,24 @@ AC_PROG_CPP
 AC_PROG_CXX
 
 AC_STDC_HEADERS
-#AC_ARG_PROGRAM
 AC_DISABLE_FAST_INSTALL
 AC_DISABLE_STATIC
 AM_PROG_LIBTOOL
 
+LIBFERRIS_PLATFORM_SPECIFICS
 
-dnl Checks for libraries.
+
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+
 AC_CHECK_LIB(fam, FAMOpen)
 
-###############################################################################
-###############################################################################
-###############################################################################
-###############################################################################
-
-AM_FERRIS_STLPORT_OPTIONAL( 4.5.0 )
-AM_FERRIS_LOKI( 2.1.1 )
-AM_FERRIS_SIGC2( 2.0.0 )
+AM_FERRIS_BOOST_NEEDED
 AM_PATH_GLIB_2_0( 2.0.0 )
-#AM_PATH_GTK_2_0( 2.0.0 )
 
+#AM_PATH_GTK_2_0( 2.0.0 )
 AM_CONDITIONAL(HAVE_GTK, test x$enable_gtk_example = xyes)
 
 
@@ -62,38 +58,16 @@ AM_CONDITIONAL(HAVE_GTK, test x$enable_gtk_example = xyes)
 ###############################################################################
 
 
-CFLAGS=" $STLPORT_CFLAGS $LOKI_CFLAGS $SIGC_CFLAGS $CFLAGS -O0 -g  "
-CXXFLAGS=" $STLPORT_CFLAGS  $CXXFLAGS -O0 -g $LOKI_LIBS $SIGC_CFLAGS  "
-LDFLAGS=" $STLPORT_LIBS $SIGC_LIBS $LDFLAGS "
+CFLAGS="   $CFLAGS -O0 -g  "
+CXXFLAGS=" $CXXFLAGS -O0 -g  "
+LDFLAGS="  $LDFLAGS "
 AC_SUBST(CFLAGS)
 AC_SUBST(CPPFLAGS)
 AC_SUBST(LDFLAGS)
 AC_SUBST(CXXFLAGS)
 AC_SUBST(CXXCPPFLAGS)
 
-
-dnl if test "x${prefix}" = 'xNONE'; then
-dnl         prefix=${ac_default_prefix};
-dnl fi;
-dnl if test "x${exec_prefix}" = 'xNONE'; then
-dnl         exec_prefix=${ac_default_prefix};
-dnl fi;
-
-dnl PREFIX=${prefix};
-dnl SYSCONFDIR=`eval echo ${sysconfdir}`
-dnl EXECPREFIX=`eval echo ${exec_prefix}`
-dnl BINDIR=`eval echo ${bindir}`
-dnl LIBDIR=`eval echo ${libdir}`
-dnl INCLUDEDIR=`eval echo ${includedir}`
-
-dnl AC_SUBST(PREFIX)
-dnl AC_SUBST(SYSCONFDIR)
-dnl AC_SUBST(EXECPREFIX)
-dnl AC_SUBST(BINDIR) 
-dnl AC_SUBST(LIBDIR) 
-dnl AC_SUBST(INCLUDEDIR)
-
-REQUIREMENTS="ferrisloki >= 2.0.3 sigc++-2.0 >= 2.0.0 "
+REQUIREMENTS=" ferrisstreams "
 AC_SUBST(REQUIREMENTS)
 
 

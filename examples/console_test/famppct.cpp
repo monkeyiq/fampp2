@@ -28,11 +28,6 @@
 *******************************************************************************
 ******************************************************************************/
 
-#include <sigc++/sigc++.h>
-#include <sigc++/slot.h>
-#include <sigc++/object.h>
-#include <sigc++/object_slot.h>
-
 #include <glib.h>
 #include <stdio.h>
 
@@ -117,12 +112,12 @@ main(int argc, char* argv[])
         Fampp::fh_fampp_req req = Fampp::MonitorDirectory( path );
 
         // Connect libsigC++ signal
-        req->getSig<Fampp::FamppCreatedEvent>(). connect(sigc::ptr_fun(&CreatedFamEv));
-        req->getSig<Fampp::FamppExistsEvent>().  connect(sigc::ptr_fun(&OnFamppExistsEvent));
-        req->getSig<Fampp::FamppEndExistEvent>().connect(sigc::ptr_fun(&OnFamppEndExistEvent));
-        req->getSig<Fampp::FamppChangedEvent>(). connect(sigc::ptr_fun(&OnFamppChangedEvent));
-        req->getSig<Fampp::FamppDeletedEvent>(). connect(sigc::ptr_fun(&OnFamppDeletedEvent));
-        req->getSig<Fampp::FamppMovedEvent>(). connect(sigc::ptr_fun(&OnFamppMovedEvent));
+        req->getSig<Fampp::FamppCreatedEvent>(). connect(&CreatedFamEv);
+        req->getSig<Fampp::FamppExistsEvent>().  connect(&OnFamppExistsEvent);
+        req->getSig<Fampp::FamppEndExistEvent>().connect(&OnFamppEndExistEvent);
+        req->getSig<Fampp::FamppChangedEvent>(). connect(&OnFamppChangedEvent);
+        req->getSig<Fampp::FamppDeletedEvent>(). connect(&OnFamppDeletedEvent);
+        req->getSig<Fampp::FamppMovedEvent>(). connect(&OnFamppMovedEvent);
 
         
         cerr << "=========================================" << endl;

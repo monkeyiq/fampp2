@@ -4,7 +4,6 @@ MAINTAINERCLEANFILES = Makefile.in
 
 
 INCLUDES =                                              \
-	@STLPORT_CFLAGS@                                \
 	-I. 						\
 	-I$(srcdir) -I$(top_srcdir) 			\
 	-I$(top_builddir)				\
@@ -34,8 +33,7 @@ libfampp_la_SOURCES =           \
 	Fampp2Handle.hh         
 
 
-#libfampp_la_LIBADD = -lfam #-Wl,-Bstatic -lstlport_gcc  -Wl,-Bdynamic
-libfampp_la_LIBADD = -lfam @STLPORT_LIBS@
+libfampp_la_LIBADD = -lfam 
 libfampp_la_LDFLAGS = $(GLIB_LIBS)  -version-info 2:0:0
 
 

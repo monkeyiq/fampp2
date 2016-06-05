@@ -14,5 +14,5 @@ INCLUDES =                                              \
 
 famppct_SOURCES = famppct.cpp
 famppct_LDADD = $(top_builddir)/src/libfampp.la -lpopt -lfam
-famppct_LDFLAGS = @SIGC_LIBS@ @GLIB_LIBS@
+famppct_LDFLAGS = @GLIB_LIBS@
 

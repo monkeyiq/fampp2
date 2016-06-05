@@ -33,50 +33,28 @@
 
 #include <Fampp2Handle.hh>
 
+#include <fam.h>
+
 #include <stdexcept>
 #include <map>
 //#include <hash_map>
 
-#include <fam.h>
-#include <sigc++/sigc++.h>
-#include <SmartPtr.h>
-#include <Singleton.h>
 
-#include <FerrisLoki/loki/Factory.h>
-#include <FerrisLoki/loki/Functor.h>
-#include <FerrisLoki/loki/SmartPtr.h>
-#include <FerrisLoki/Extensions.hh>
+#include <FerrisStreams/Streams.hh>
+
 
 namespace Fampp
 {
     class FamppSingletonClass;
 	class FamppRequest;
-    
-//     typedef Loki::SmartPtr<
-//         FamppRequest,
-//         FamppRefCounted,
-//         Loki::DisallowConversion,
-//         Loki::AssertCheck,
-//         Loki::DefaultSPStorage > fh_fampp_req;
-
-    typedef Loki::SmartPtr<
-        FamppRequest,
-        FerrisLoki::FerrisExRefCounted,
-        Loki::DisallowConversion,
-        FerrisLoki::FerrisExSmartPointerChecker,
-        FerrisLoki::FerrisExSmartPtrStorage >  fh_fampp_req;
-    
-    
-    
     class FamppEventBase;
-    typedef Loki::SmartPtr<
-        FamppEventBase,
-        FerrisLoki::FerrisExRefCounted,
-        Loki::DisallowConversion,
-        FerrisLoki::FerrisExSmartPointerChecker,
-        FerrisLoki::FerrisExSmartPtrStorage >  fh_fampp_ev;
 
-    typedef Loki::SingletonHolder< FamppSingletonClass > Fampp;
+    typedef boost::intrusive_ptr<FamppRequest>   fh_fampp_req;
+    typedef boost::intrusive_ptr<FamppEventBase> fh_fampp_ev;
+    
+
+//    typedef Loki::SingletonHolder< FamppSingletonClass > Fampp;
+    typedef ::Ferris::FerrisSingleton< FamppSingletonClass > Fampp;
     FamppSingletonClass& FamppInstance();
     FAMEvent* getCurrentFAMEvent();
 };
@@ -90,15 +68,10 @@ namespace Fampp
 
     template <class EventType>
     class FamppRequestEventDispatch
-        :
-        public virtual sigc::trackable
     {
     public:
         
-        typedef sigc::signal3< void,
-                               std::string,
-                               fh_fampp_req,
-                               fh_fampp_ev > Sig_t;
+        typedef boost::signals2::signal<void (std::string, fh_fampp_req, fh_fampp_ev)> Sig_t;
 
         template <class T>
         Sig_t& getSig( T* dummy = 0)
@@ -184,10 +157,8 @@ namespace Fampp
             }
 
         
-        typedef sigc::signal3< void,
-                               std::string,
-                               fh_fampp_req,
-                               fh_fampp_ev > MuxedSig_t;
+        typedef boost::signals2::signal<void (std::string, fh_fampp_req, fh_fampp_ev)> MuxedSig_t;
+        
         MuxedSig_t& getMuxedSig();
         
 

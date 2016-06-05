@@ -35,13 +35,9 @@
 #define INCLUDED_FAMPPEVENTS_HH
 
 #include <fam.h>
-#include <sigc++/signal.h>
-#include <sigc++/object.h>
-#include <SmartPtr.h>
-#include <Singleton.h>
-#include <Factory.h>
-#include <Functor.h>
-#include <FerrisLoki/Extensions.hh>
+
+#include <boost/functional/factory.hpp>
+#include <FerrisStreams/Streams.hh>
 
 namespace Fampp
 {
@@ -67,11 +63,14 @@ namespace Fampp
 //     EventFactory;
 
 
-    typedef Loki::SingletonHolder<
-        Loki::Factory< FamppEventBase, int >,
-        Loki::CreateUsingNew, Loki::NoDestroy
-        > EventFactory;
+    // typedef Loki::SingletonHolder<
+    //     Loki::Factory< FamppEventBase, int >,
+    //     Loki::CreateUsingNew, Loki::NoDestroy
+    //     > EventFactory;
 
+//    typedef ::Ferris::FerrisSingleton< Loki::Factory< FamppEventBase, int > > EventFactory;
+    typedef std::map< int, boost::function< FamppEventBase*() > > EventFactoryInstance_t;
+    typedef ::Ferris::FerrisSingleton< std::map< int, boost::function< FamppEventBase*() > > > EventFactory;
 
     
     
@@ -126,7 +125,7 @@ namespace Fampp
                 FamppRequestEventDispatch<TypeClass>* sigsrc = ::Ferris::GetImpl( req );
 ///                FamppRequestEventDispatch<TypeClass>* sigsrc = *req;
                 
-                sigsrc->getSig().emit( getFileName(), req, this);
+                sigsrc->getSig()( getFileName(), req, this);
                     
 //                cerr << "FamppEvent::dispatch(exit)" << endl;
             }
@@ -138,6 +137,7 @@ namespace Fampp
         FamppEvent()
             {
 //                EventFactory::Instance().Register( FamppFAMCode, &MakeObject<TypeClass>::Create );
+                EventFactory::instance()[ FamppFAMCode ] = boost::factory<TypeClass*>();
 
                 
             }

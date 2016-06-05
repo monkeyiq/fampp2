@@ -81,17 +81,17 @@ static FamppEndExistEvent FamppEndExistEventObj;
             }
         RegisterEventClasses()
             {
-                Loki::Factory< FamppEventBase, int >& fac = EventFactory::Instance();
+                EventFactoryInstance_t& fac = EventFactory::instance();
 
-                fac.Register( FAMChanged,        &CreateEvent<FamppChangedEvent> );
-                fac.Register( FAMDeleted,        &CreateEvent<FamppDeletedEvent> );
-                fac.Register( FAMStartExecuting, &CreateEvent<FamppStartExecutingEvent> );
-                fac.Register( FAMStopExecuting,  &CreateEvent<FamppStopExecutingEvent> );
-                fac.Register( FAMCreated,        &CreateEvent<FamppCreatedEvent> );
-                fac.Register( FAMMoved,          &CreateEvent<FamppMovedEvent> );
-                fac.Register( FAMAcknowledge,    &CreateEvent<FamppAcknowledgeEvent> );
-                fac.Register( FAMExists,         &CreateEvent<FamppExistsEvent> );
-                fac.Register( FAMEndExist,       &CreateEvent<FamppEndExistEvent> );
+                fac[ FAMChanged        ] = boost::factory<FamppChangedEvent*>();
+                fac[ FAMDeleted        ] = boost::factory<FamppDeletedEvent*>();
+                fac[ FAMStartExecuting ] = boost::factory<FamppStartExecutingEvent*>();
+                fac[ FAMStopExecuting  ] = boost::factory<FamppStopExecutingEvent*>();
+                fac[ FAMCreated        ] = boost::factory<FamppCreatedEvent*>();
+                fac[ FAMMoved          ] = boost::factory<FamppMovedEvent*>();
+                fac[ FAMAcknowledge    ] = boost::factory<FamppAcknowledgeEvent*>();
+                fac[ FAMExists         ] = boost::factory<FamppExistsEvent*>();
+                fac[ FAMEndExist       ] = boost::factory<FamppEndExistEvent*>();
             }
     };
     static RegisterEventClasses __RegisterEventClassesObject;

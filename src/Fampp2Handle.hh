@@ -31,14 +31,9 @@
 #ifndef INCLUDED_FAMPP_HANDLE_H
 #define INCLUDED_FAMPP_HANDLE_H
 
-#include <sigc++/sigc++.h>
-
-//#include <iostream>
-#include <SmartPtr.h>
-
-// #include <iostream>
-// using namespace std;
-
+#include <boost/smart_ptr/intrusive_ref_counter.hpp>
+#include <boost/intrusive_ptr.hpp>
+#include <FerrisStreams/All.hh>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Emits a signal before last reference is dropped.
@@ -141,19 +136,9 @@
  * policy.
  */
 class FamppHandlable
+    :
+    public ::Ferris::Handlable
 {
-protected:
-
-    /**
-     * Type for reference counts. This could be 16/32/64 bits.
-     */
-    typedef long ref_count_t;
-
-    /**
-     * shared reference count for all handles that point to this object.
-     */
-    ref_count_t ref_count;
-    
 public:
 
     /**
@@ -161,48 +146,9 @@ public:
      * conditions.
      */
     FamppHandlable()
-        :
-        ref_count(0)
         {
         }
 
-    /**
-     * Add another reference
-     */
-    virtual ref_count_t AddRef()
-        {
-//             cerr << "FamppHandlable::AddRef() OLD ref_count : " << ref_count
-//                  << " this: " << (void*)this
-//                  << endl;
-            return ++ref_count;
-        }
-
-    /**
-     * Release a reference
-     */
-    virtual ref_count_t Release()
-        {
-//             cerr << "FamppHandlable::Release() OLD ref_count : " << ref_count
-//                  << " this: " << (void*)this
-//                  << endl;
-            return --ref_count;
-        }
-
-    virtual void private_AboutToBeDeleted()
-        {
-        }
-
-    ref_count_t getReferenceCount()
-        {
-            return ref_count;
-        }
-    
-    
-
-//     int rc()
-//         {
-//             return ref_count;
-//         }
 };
 
 

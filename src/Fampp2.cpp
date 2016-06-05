@@ -32,20 +32,14 @@
 #include <Fampp2_private.hh>
 #include <iostream>
 
-#include <sigc++/sigc++.h>
-#include <sigc++/slot.h>
-#include <sigc++/object.h>
-#include <sigc++/object_slot.h>
-
-
 using namespace std;
-
+using Ferris::GetImpl;
 
 namespace Fampp
 {
     FamppSingletonClass& FamppInstance()
     {
-        return Fampp::Instance();
+        return Fampp::instance();
     }
     FAMEvent* getCurrentFAMEvent()
     {
@@ -56,7 +50,7 @@ namespace Fampp
     static int
     FamReqNum()
     {
-        const FAMEvent* ev = Fampp::Instance().getFAMEvent();
+        const FAMEvent* ev = Fampp::instance().getFAMEvent();
         return FAMREQUEST_GETREQNUM( (&(ev->fr)) );
     }
 
@@ -119,7 +113,7 @@ namespace Fampp
         {
             throw FamppRequestCancelFailedException(this);
         }
-        Fampp::Instance().removeRequest(this);
+        Fampp::instance().removeRequest(this);
     }
 
     FAMRequest&
@@ -144,7 +138,8 @@ namespace Fampp
     {
 //        cerr << "FamppRequest::dispatch(enter)" << endl;
         
-        FamppEventBase* ev = EventFactory::Instance().CreateObject( getFamEvent()->code );
+//        FamppEventBase* ev = EventFactory::instance().CreateObject( getFamEvent()->code );
+        FamppEventBase* ev = EventFactory::instance()[ getFamEvent()->code ]();
         
         {
 //             cerr << "FamppRequest::dispatch(1)" << endl;
@@ -190,13 +185,13 @@ namespace Fampp
     FAMEvent*
     FamppRequest::getFamEvent()
     {
-        return Fampp::Instance().getFAMEvent();
+        return Fampp::instance().getFAMEvent();
     }
     
     FAMConnection&
     FamppRequest::getFAMConnection()
     {
-        return Fampp::Instance().getFAMConnection();
+        return Fampp::instance().getFAMConnection();
     }
     
     void
@@ -205,7 +200,7 @@ namespace Fampp
         fh_fampp_req req,
         fh_fampp_ev ev )
     {
-        getMuxedSig().emit( filename, req, ev );
+        MuxedSig( filename, req, ev );
     }
     
     FamppRequest::MuxedSig_t&
@@ -217,15 +212,12 @@ namespace Fampp
         {
             virgin = false;
             
-            getSig<FamppChangedEvent>().connect(sigc::mem_fun( *this, &FamppRequest::bounceEv));
-//             getSig<FamppDeletedEvent>().connect(sigc::mem_fun( *this, &FamppRequest::bounceEv));
-//             getSig<FamppStartExecutingEvent>().connect(sigc::mem_fun( this, &FamppRequest::bounceEv));
-//             getSig<FamppStopExecutingEvent>().connect(sigc::mem_fun( this, &FamppRequest::bounceEv));
-//             getSig<FamppCreatedEvent>().connect(sigc::mem_fun( this, &FamppRequest::bounceEv));
-//             getSig<FamppMovedEvent>().connect(sigc::mem_fun( this, &FamppRequest::bounceEv));
-//             getSig<FamppAcknowledgeEvent>().connect(sigc::mem_fun( this, &FamppRequest::bounceEv));
-//             getSig<FamppExistsEvent>().connect(sigc::mem_fun( this, &FamppRequest::bounceEv));
-//             getSig<FamppEndExistEvent>().connect(sigc::mem_fun( this, &FamppRequest::bounceEv));
+//            getSig<FamppChangedEvent>().connect(sigc::mem_fun( *this, &FamppRequest::bounceEv));
+            getSig<FamppChangedEvent>().connect(
+                boost::lambda::bind(&FamppRequest::bounceEv,this,
+                                    boost::lambda::_1,
+                                    boost::lambda::_2,
+                                    boost::lambda::_3));
         }
         return MuxedSig;
     }
@@ -376,7 +368,7 @@ namespace Fampp
     fh_fampp_req MonitorDirectory( string filename, void* userData ) 
         throw(FamppDirMonitorInitFailedException)
     {
-        return Fampp::Instance().MonitorDirectory( filename, userData );
+        return Fampp::instance().MonitorDirectory( filename, userData );
     }
     
         
@@ -384,7 +376,7 @@ namespace Fampp
     fh_fampp_req MonitorFile( string filename, void* userData ) 
         throw(FamppFileMonitorInitFailedException)
     {
-        return Fampp::Instance().MonitorFile( filename, userData );
+        return Fampp::instance().MonitorFile( filename, userData );
     }
     
     
