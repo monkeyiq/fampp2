@@ -36,7 +36,6 @@
 
 #include <fam.h>
 #include <sigc++/signal.h>
-#include <sigc++/object.h>
 #include <SmartPtr.h>
 #include <Singleton.h>
 #include <Factory.h>

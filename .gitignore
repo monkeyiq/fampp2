@@ -24,3 +24,6 @@ install-sh
 a.out
 
 
+compile
+runtest.sh
+
