@@ -27,3 +27,15 @@ a.out
 compile
 runtest.sh
 
+/config.h
+/config.log
+/config.status
+/examples/console_test/.deps/
+*.o
+.deps
+/libtool
+*.lo
+*.la
+.libs
+/fampp2-config
+/stamp-h1

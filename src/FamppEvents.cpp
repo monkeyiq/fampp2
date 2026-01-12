@@ -40,6 +40,14 @@ using namespace std;
 
 namespace Fampp
 {
+    Loki::Factory< FamppEventBase, int >&
+    getEventFactory()
+    {
+        static Loki::Factory< FamppEventBase, int > obj;
+        return obj;
+    }
+    
+
     
 
 const string FamppChangedEventStr = "FAMChanged Event";
@@ -81,7 +89,7 @@ static FamppEndExistEvent FamppEndExistEventObj;
             }
         RegisterEventClasses()
             {
-                Loki::Factory< FamppEventBase, int >& fac = EventFactory::Instance();
+                Loki::Factory< FamppEventBase, int >& fac = getEventFactory();
 
                 fac.Register( FAMChanged,        &CreateEvent<FamppChangedEvent> );
                 fac.Register( FAMDeleted,        &CreateEvent<FamppDeletedEvent> );
@@ -95,4 +103,23 @@ static FamppEndExistEvent FamppEndExistEventObj;
             }
     };
     static RegisterEventClasses __RegisterEventClassesObject;
+
+    // FamppEventBase* CreateEventObject( int code )
+    // {
+    //     switch(code)
+    //     {
+    //         case FAMChanged:        return &FamppChangedEventObj;
+    //         case FAMDeleted:        return &FamppDeletedEvent;
+    //         case FAMStartExecuting: return &FamppStartExecutingEvent;
+    //         case FAMStopExecuting:  return &FamppStopExecutingEvent;
+    //         case FAMCreated:        return &FamppCreatedEvent;
+    //         case FAMMoved:          return &FamppMovedEvent;
+    //         case FAMAcknowledge:    return &FamppAcknowledgeEvent;
+    //         case FAMExists:         return &FamppExistsEvent;
+    //         case FAMEndExist:       return &FamppEndExistEvent;
+    //     }
+        
+    // }
+    
+    
 };

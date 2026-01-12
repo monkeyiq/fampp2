@@ -75,11 +75,11 @@ namespace Fampp
                          GIOCondition condition,
                          gpointer data)
     {
-        while( Fampp::Instance().Pending() )
+        while( FamppInstance().Pending() )
         {
             try
             {
-                Fampp::Instance().NextEvent();
+                FamppInstance().NextEvent();
             }
             catch( std::exception& e )
             {
@@ -95,9 +95,9 @@ namespace Fampp
     void
     ProcessFamppEvents()
     {
-        while( Fampp::Instance().Pending() )
+        while( FamppInstance().Pending() )
         {
-            Fampp::Instance().NextEvent();
+            FamppInstance().NextEvent();
         }
     }
     
@@ -116,9 +116,9 @@ namespace Fampp
             GIOChannel *channel;
             GIOCondition cond = GIOCondition(G_IO_IN | G_IO_ERR | G_IO_PRI);
 
-//            cerr << "Attaching to fd:" << Fampp::Instance().getFD() << endl;
+//            cerr << "Attaching to fd:" << FamppInstance().getFD() << endl;
             
-            channel = g_io_channel_unix_new( Fampp::Instance().getFD() );
+            channel = g_io_channel_unix_new( FamppInstance().getFD() );
             result  = g_io_add_watch( channel, cond,
                                       registerWithGLib_cb, 0 );
             g_io_channel_unref (channel);

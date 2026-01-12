@@ -43,7 +43,6 @@
 #include <Singleton.h>
 
 #include <FerrisLoki/loki/Factory.h>
-#include <FerrisLoki/loki/Functor.h>
 #include <FerrisLoki/loki/SmartPtr.h>
 #include <FerrisLoki/Extensions.hh>
 
@@ -76,7 +75,8 @@ namespace Fampp
         FerrisLoki::FerrisExSmartPointerChecker,
         FerrisLoki::FerrisExSmartPtrStorage >  fh_fampp_ev;
 
-    typedef Loki::SingletonHolder< FamppSingletonClass > Fampp;
+    typedef FamppSingletonClass& Fampp;
+//    typedef Loki::SingletonHolder< FamppSingletonClass > Fampp;
     FamppSingletonClass& FamppInstance();
     FAMEvent* getCurrentFAMEvent();
 };
@@ -257,22 +257,18 @@ namespace Fampp
         void NextEvent();
         int  Pending();
 
-        fh_fampp_req MonitorDirectory( std::string filename, void* userData=NULL) 
-            throw(FamppDirMonitorInitFailedException);
+        fh_fampp_req MonitorDirectory( std::string filename, void* userData=NULL);
 
-        fh_fampp_req MonitorFile( std::string filename, void* userData=NULL) 
-            throw(FamppFileMonitorInitFailedException);
+        fh_fampp_req MonitorFile( std::string filename, void* userData=NULL);
 
         
     };
     
 
 
-    fh_fampp_req MonitorDirectory( std::string filename, void* userData=NULL) 
-        throw(FamppDirMonitorInitFailedException);
+    fh_fampp_req MonitorDirectory( std::string filename, void* userData=NULL);
 
-    fh_fampp_req MonitorFile( std::string filename, void* userData=NULL) 
-        throw(FamppFileMonitorInitFailedException);
+    fh_fampp_req MonitorFile( std::string filename, void* userData=NULL);
 
     
 };

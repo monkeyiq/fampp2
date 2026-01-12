@@ -43,18 +43,27 @@ namespace Fampp
 {
     FamppSingletonClass& FamppInstance()
     {
-        return Fampp::Instance();
+        static FamppSingletonClass* obj = 0;
+        if( !obj ) {
+            obj = new FamppSingletonClass();
+            obj->AddRef();
+            obj->AddRef();
+            obj->AddRef();
+        }
+        
+        return *obj;
+//        return Fampp::Instance();
     }
     FAMEvent* getCurrentFAMEvent()
     {
-        FamppInstance().getFAMEvent();
+        return FamppInstance().getFAMEvent();
     }
     
 
     static int
     FamReqNum()
     {
-        const FAMEvent* ev = Fampp::Instance().getFAMEvent();
+        const FAMEvent* ev = FamppInstance().getFAMEvent();
         return FAMREQUEST_GETREQNUM( (&(ev->fr)) );
     }
 
@@ -117,7 +126,7 @@ namespace Fampp
         {
             throw FamppRequestCancelFailedException(this);
         }
-        Fampp::Instance().removeRequest(this);
+        FamppInstance().removeRequest(this);
     }
 
     FAMRequest&
@@ -142,7 +151,7 @@ namespace Fampp
     {
 //        cerr << "FamppRequest::dispatch(enter)" << endl;
         
-        FamppEventBase* ev = EventFactory::Instance().CreateObject( getFamEvent()->code );
+        FamppEventBase* ev = getEventFactory().CreateObject( getFamEvent()->code );
         
         {
 //             cerr << "FamppRequest::dispatch(1)" << endl;
@@ -188,13 +197,13 @@ namespace Fampp
     FAMEvent*
     FamppRequest::getFamEvent()
     {
-        return Fampp::Instance().getFAMEvent();
+        return FamppInstance().getFAMEvent();
     }
     
     FAMConnection&
     FamppRequest::getFAMConnection()
     {
-        return Fampp::Instance().getFAMConnection();
+        return FamppInstance().getFAMConnection();
     }
     
     void
@@ -312,9 +321,6 @@ namespace Fampp
     
     fh_fampp_req
     FamppSingletonClass::MonitorDirectory( string filename, void* userData ) 
-        throw(
-            FamppDirMonitorInitFailedException
-            )
     {
         fh_fampp_req ret = makeFamppRequest( filename, userData, false );
 //        cerr << "MonitorDirectory. filename:" << filename << " FamReqNum(ret):" << FamReqNum(ret) << endl;
@@ -325,7 +331,6 @@ namespace Fampp
 
     fh_fampp_req
     FamppSingletonClass::MonitorFile( string filename, void* userData ) 
-        throw (FamppFileMonitorInitFailedException)
     {
         fh_fampp_req ret = makeFamppRequest( filename, userData, true );
         FAMppRequestsByID[ FamReqNum(ret) ] = GetImpl(ret);
@@ -372,17 +377,15 @@ namespace Fampp
 
     
     fh_fampp_req MonitorDirectory( string filename, void* userData ) 
-        throw(FamppDirMonitorInitFailedException)
     {
-        return Fampp::Instance().MonitorDirectory( filename, userData );
+        return FamppInstance().MonitorDirectory( filename, userData );
     }
     
         
 
     fh_fampp_req MonitorFile( string filename, void* userData ) 
-        throw(FamppFileMonitorInitFailedException)
     {
-        return Fampp::Instance().MonitorFile( filename, userData );
+        return FamppInstance().MonitorFile( filename, userData );
     }
     
     

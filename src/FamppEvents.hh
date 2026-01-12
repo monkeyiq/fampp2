@@ -39,39 +39,16 @@
 #include <SmartPtr.h>
 #include <Singleton.h>
 #include <Factory.h>
-#include <Functor.h>
 #include <FerrisLoki/Extensions.hh>
+
+#include <iostream>
 
 namespace Fampp
 {
 
-//     template < class Product >
-//     struct MakeObject
-//     {
-//         static FamppEventBase* Create()
-//             {
-//                 FamppEventBase* ret = 0;
-//                 ret = new Product();
-//                 return ret;
-//             }
-//     };
+    Loki::Factory< FamppEventBase, int >& getEventFactory();
 
-
-//     typedef Loki::SingletonHolder<
-//         Loki::Factory< FamppEventBase,
-//                        int,
-//                        FamppEventBase* (*)()
-//         >
-//     >
-//     EventFactory;
-
-
-    typedef Loki::SingletonHolder<
-        Loki::Factory< FamppEventBase, int >,
-        Loki::CreateUsingNew, Loki::NoDestroy
-        > EventFactory;
-
-
+    
     
     
     typedef int FamppFAMCode_t;
@@ -83,7 +60,11 @@ namespace Fampp
     protected:
         
         friend class FamppRequest;
-        virtual void dispatch( fh_fampp_req req ) = 0;
+        virtual void dispatch( fh_fampp_req req ) 
+        {
+
+        }
+        
 
     public:
 
@@ -120,7 +101,9 @@ namespace Fampp
         friend class FamppRequest;
         void dispatch( fh_fampp_req req )
             {
-//                cerr << "FamppEvent::dispatch(enter)" << endl;
+//                std::cerr << "FamppEvent::dispatch(enter)" << std::endl;
+//
+//                std::cerr << "FamppEvent::dispatch(enter) fn :" << getFileName() << std::endl;
                 
                 FamppRequestEventDispatch<TypeClass>* sigsrc = ::Ferris::GetImpl( req );
 ///                FamppRequestEventDispatch<TypeClass>* sigsrc = *req;
