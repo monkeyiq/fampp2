@@ -95,10 +95,10 @@ namespace Fampp
     {
     public:
         
-        typedef sigc::signal3< void,
+        typedef sigc::signal< void (
                                std::string,
                                fh_fampp_req,
-                               fh_fampp_ev > Sig_t;
+                               fh_fampp_ev ) > Sig_t;
 
         template <class T>
         Sig_t& getSig( T* dummy = 0)
@@ -184,10 +184,10 @@ namespace Fampp
             }
 
         
-        typedef sigc::signal3< void,
+        typedef sigc::signal< void (
                                std::string,
                                fh_fampp_req,
-                               fh_fampp_ev > MuxedSig_t;
+                               fh_fampp_ev ) > MuxedSig_t;
         MuxedSig_t& getMuxedSig();
         
 

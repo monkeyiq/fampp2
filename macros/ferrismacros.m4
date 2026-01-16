@@ -24,7 +24,7 @@ dnl At present there is no support for additional "MODULES" (see AM_PATH_GTK)
 dnl (shamelessly stolen from gtk.m4 and then hacked around a fair amount)
 dnl
 dnl @author Angus Lees <gusl@cse.unsw.edu.au>
-dnl @version $Id: ferrismacros.m4,v 1.5 2009/10/16 21:33:14 ben Exp $
+dnl @version $Id: ferrismacros.m4,v 1.36 2011/06/17 21:38:48 ben Exp $
 
 AC_DEFUN(AC_PATH_GENERIC,
 [dnl
@@ -277,7 +277,7 @@ AC_ARG_WITH(stlport,
         [  --with-stlport=DIR          use stlport 4.5+ install rooted at <DIR>],
         [STLPORT_CFLAGS=" -I$withval/stlport "
 	 STLPORT_LDFLAGS=" -L$withval/lib "
- 	 STLPORT_LIB=" -lstlport_gcc -lpthread "
+ 	 STLPORT_LIB=" -lstlport -lpthread "
 	 STLPORT_LIBS=" -L$withval/lib ${STLPORT_LIB} "
 	 stlport_try_trivial_compile=yes
         ])
@@ -331,7 +331,7 @@ fi
 
 if test x"$have_stlport" = xno; then
 	STLPORT_CFLAGS=" -I/usr/local/STLport-4.5/stlport "
-	STLPORT_LIB=" -lstlport_gcc -lpthread "
+	STLPORT_LIB=" -lstlport -lpthread "
 	STLPORT_LIBS=" -L/usr/local/STLport-4.5/lib ${STLPORT_LIB} "
 
 	AM_FERRIS_STLPORT_INTERNAL_TRYLINK( [have_stlport=yes], [have_stlport=no]  )
@@ -339,7 +339,7 @@ fi
 
 if test x"$have_stlport" = xno; then
 	STLPORT_CFLAGS=" -I/usr/local/include/stlport "
-	STLPORT_LIB=" -lstlport_gcc -lpthread "
+	STLPORT_LIB=" -lstlport -lpthread "
 	STLPORT_LIBS=" -L/usr/local/lib ${STLPORT_LIB} "
 
 	AM_FERRIS_STLPORT_INTERNAL_TRYLINK( [have_stlport=yes], [have_stlport=no]  )
@@ -347,7 +347,7 @@ fi
 
 if test x"$have_stlport" = xno; then
 	STLPORT_CFLAGS=" -I/usr/include/stlport "
-	STLPORT_LIB=" -lstlport_gcc -lpthread "
+	STLPORT_LIB=" -lstlport -lpthread "
 	STLPORT_LIBS="  ${STLPORT_LIB} "
 
 	AM_FERRIS_STLPORT_INTERNAL_TRYLINK( [have_stlport=yes], [have_stlport=no]  )
@@ -592,15 +592,12 @@ have_package=no
 sigc_required_version=$1
 
 AC_ARG_WITH(sigcxx-2x,
-AC_HELP_STRING([--with-sigcxx-2x=no],[use sigc++ 2.x, --with-sigcxx-2x=yes enables]),
+AC_HELP_STRING([--with-sigcxx-2x=yes],[use sigc++ 2.x, --with-sigcxx-2x=yes default]),
 [  ac_use_sigcxx_2=$withval
 ], ac_use_sigcxx_2="no"
 )
 
-package=sigc++-1.2
-if test x"$ac_use_sigcxx_2" = xyes; then
-	package=sigc++-2.0
-fi
+package=sigc++-2.0
 
 version=$sigc_required_version
 PKG_CHECK_MODULES(SIGC, $package >= $version,
@@ -643,26 +640,7 @@ dnl
 have_package=no
 sigc_required_version=$1
 
-dnl AC_ARG_WITH(sigcxx-2x,
-dnl AC_HELP_STRING([--with-sigcxx-2x=no],[use sigc++ 2.x, --with-sigcxx-2x=yes enables]),
-dnl [  ac_use_sigcxx_2=$withval
-dnl ], ac_use_sigcxx_2="no"
-dnl )
-
-AC_ARG_WITH(sigcxx-1x,
-AC_HELP_STRING([--with-sigcxx-1x=no],[use sigc++ 1.x, --with-sigcxx-1x=yes enables]),
-[  ac_use_sigcxx_1=$withval
-], ac_use_sigcxx_1="no"
-)
-
-
 package=sigc++-2.0
-dnl if test x"$ac_use_sigcxx_2" = xyes; then
-dnl 	package=sigc++-2.0
-dnl fi
-if test x"$ac_use_sigcxx_1" = xyes; then
-	package=sigc++-1.2
-fi
 
 version=$sigc_required_version
 PKG_CHECK_MODULES(SIGC, $package >= $version,
@@ -684,6 +662,53 @@ PKG_CHECK_MODULES(SIGC, $package >= $version,
 	[$3])     
 	])
 
+dnl This is not really good. But it seems that gcc wants it to work with sigc++ 2.x on Fedora.
+SIGC_CFLAGS="$SIGC_CFLAGS -std=c++11"
+AC_SUBST(SIGC_CFLAGS)
+AC_SUBST(SIGC_LIBS)
+])
+
+
+dnl AM_FERRIS_SIGC([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND ]]])
+dnl
+dnl The default ACTION-IF-NOT-FOUND is to AC_MSG_ERROR() with a description of where
+dnl to locate sigc++ for installation. 
+dnl ie. default is to REQUIRE sigc++ MINIMUM-VERSION or stop running.
+dnl
+dnl SIGC_CFLAGS and SIGC_LIBS are set and AC_SUBST()ed when library is found.
+dnl
+AC_DEFUN(AM_FERRIS_SIGC3,
+[dnl 
+dnl Get the cflags and libraries from pkg-config, stlport-config or attempt to
+dnl detect the STLPort on the users system.
+dnl
+have_package=no
+sigc_required_version=$1
+
+package=sigc++-3.0
+
+version=$sigc_required_version
+PKG_CHECK_MODULES(SIGC, $package >= $version,
+[
+	AC_DEFINE( HAVE_SIGC, 1, [Is sigc++ installed] )
+
+	# success
+	ifelse([$2], , :, [$2])
+],
+[
+	ifelse([$3], , 
+	[
+  		echo ""
+		echo "latest version of $package required. ($version or better) "
+		echo ""
+		echo "this should be on the freshrpms.net website"
+		AC_MSG_ERROR([Fatal Error: no correct $package found.])	
+	], 
+	[$3])     
+	])
+
+dnl This is not really good. But it seems that gcc wants it to work with sigc++ 3.x on Fedora.
+SIGC_CFLAGS="$SIGC_CFLAGS"
 AC_SUBST(SIGC_CFLAGS)
 AC_SUBST(SIGC_LIBS)
 ])
@@ -956,6 +981,130 @@ dnl
 ])
 
 
+dnl AM_FERRIS_XERCESC3([EXACT-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND ]]])
+dnl
+dnl The default ACTION-IF-NOT-FOUND is to AC_MSG_ERROR() with a description of where
+dnl to locate xerces-c for installation. 
+dnl ie. default is to REQUIRE xerces-c EXACT-VERSION or stop running.
+dnl
+dnl XERCESC_CFLAGS and XERCESC_LIBS are set and AC_SUBST()ed when library is found.
+dnl XML4C_CFLAGS   and XML4C_LIBS   are set and AC_SUBST()ed when library is found.
+dnl AC_DEFINE(HAVE_XML4C) and AC_DEFINE(HAVE_XERCESC)
+dnl
+AC_DEFUN(AM_FERRIS_XERCESC3,
+[dnl 
+dnl Get the cflags and libraries from pkg-config, stlport-config or attempt to
+dnl detect the STLPort on the users system.
+dnl
+have_package=no
+required_version=$1
+have_xml4c=no
+
+package=xerces-c
+version=$required_version
+PKG_CHECK_MODULES(XERCESC, $package >= $version, [ have_package=yes ], [ have_package=no ] )
+dnl if test x"$have_package" = xno; then
+dnl 	AC_PATH_GENERIC(XERCES-C, $version, [ have_package=yes ], [ have_package=no ] )
+dnl fi
+
+INCLUDES="$(cat <<-HEREDOC
+#include <xercesc/util/PlatformUtils.hpp>
+#include <xercesc/util/XMLString.hpp>
+#include <xercesc/dom/DOM.hpp>
+#include <xercesc/util/XercesVersion.hpp>
+#include <iostream> 
+XERCES_CPP_NAMESPACE_USE
+HEREDOC
+)"
+PROGRAM="$(cat <<-HEREDOC
+    // Initialize the XML4C2 system.
+    try
+    {
+        XMLPlatformUtils::Initialize();
+    }
+
+    catch(const XMLException& toCatch)
+    {
+        char *pMsg = XMLString::transcode(toCatch.getMessage());
+        std::cerr << "Error during Xerces-c Initialization.\n"
+             << "  Exception message:"
+             << pMsg;
+        XMLString::release(&pMsg);
+        return 1;
+    }
+
+    
+    if( XERCES_VERSION_MAJOR != 2 && XERCES_VERSION_MINOR != 2 )
+    {
+        return 1;
+    }
+HEREDOC
+)"
+
+if test x"$have_package" = xno; then
+AC_ARG_WITH(xercesc,
+        [  --with-xercesc=DIR          use xercesc $version install rooted at <DIR>],
+        [XERCESC_CFLAGS=" -I$withval/xercesc "
+	 XERCESC_LIBS=" -L$withval/lib -lxerces-c " 
+	 AM_FERRIS_INTERNAL_TRYRUN( [$XERCESC_CFLAGS], [$XERCESC_LIBS], 
+					[ $INCLUDES ], [$PROGRAM],
+					[have_package=yes], [have_package=no] )
+	])
+fi
+
+# try to hit it directly.
+if test x"$have_package" = xno; then
+	XERCESC_CFLAGS=" -I/usr/include/xercesc "
+	XERCESC_LIBS="  -lxerces-c "
+	AM_FERRIS_INTERNAL_TRYRUN( [$XERCESC_CFLAGS], [$XERCESC_LIBS], 
+				[ $INCLUDES ], [$PROGRAM],
+				[have_package=yes], [have_package=no] )
+fi
+# try to hit it directly.
+if test x"$have_package" = xno; then
+	XERCESC_CFLAGS=" -I/usr/local/include/xercesc "
+	XERCESC_LIBS=" -L/usr/local/lib -lxerces-c "
+	AM_FERRIS_INTERNAL_TRYRUN( [$XERCESC_CFLAGS], [$XERCESC_LIBS], 
+				[ $INCLUDES ], [$PROGRAM],
+				[have_package=yes], [have_package=no] )
+fi
+
+
+if test x"$have_package" = xyes; then
+	have_xml4c=yes
+	AC_DEFINE( HAVE_XERCESC, 1, [Is Xerces-C installed])
+	AC_DEFINE( HAVE_XML4C, 1, [Is Xerces-C installed])
+
+	echo "Found an xerces-c that meets required needs..."
+	echo "  XERCESC_CFLAGS: $XERCESC_CFLAGS "
+	echo "  XERCESC_LIBS:   $XERCESC_LIBS "
+
+	# success
+	ifelse([$2], , :, [$2])
+else
+	ifelse([$3], , 
+	[
+		have_xml4c=no
+		echo ""
+		echo "explicit version ($version) of $package required. "
+		echo ""
+		AC_MSG_ERROR([Fatal Error: no correct $package found.])	
+	], 
+	[$3])     
+fi
+
+AC_SUBST(XERCESC_CFLAGS)
+AC_SUBST(XERCESC_LIBS)
+
+AM_CONDITIONAL(HAVE_XML4C, test x"$have_xml4c" = xyes)
+XML4C_CFLAGS=$XERCESC_CFLAGS
+XML4C_LIBS=$XERCESC_LIBS
+AC_SUBST(XML4C_CFLAGS)
+AC_SUBST(XML4C_LIBS)
+
+])
+
+
 dnl AM_FERRIS_XERCESC([EXACT-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND ]]])
 dnl
 dnl The default ACTION-IF-NOT-FOUND is to AC_MSG_ERROR() with a description of where
@@ -1025,6 +1174,15 @@ AC_ARG_WITH(xercesc,
 					[ $INCLUDES ], [$PROGRAM],
 					[have_package=yes], [have_package=no] )
 	])
+fi
+
+# try to hit it directly.
+if test x"$have_package" = xno; then
+	XERCESC_CFLAGS=" -I/usr/include/xercesc-2.7.0/ -I/usr/include/xercesc-2.7.0/xercesc/ "
+	XERCESC_LIBS=" -L/usr/lib64/xerces-c-2.7.0 -L/usr/lib/xerces-c-2.7.0   -lxerces-c "
+	AM_FERRIS_INTERNAL_TRYRUN( [$XERCESC_CFLAGS], [$XERCESC_LIBS], 
+				[ $INCLUDES ], [$PROGRAM],
+				[have_package=yes], [have_package=no] )
 fi
 
 
@@ -1123,7 +1281,7 @@ using namespace std;
 HEREDOC
 )"
 PROGRAM="$(cat <<-HEREDOC
-    // Initialize the XML4C2 system.
+    // Initialize the XML4C2 system. v3
     try
     {
         XMLPlatformUtils::Initialize();
@@ -1151,13 +1309,37 @@ HEREDOC
 if test x"$have_xalan" = xno; then
 AC_ARG_WITH(xalan,
         [  --with-xalan=DIR          use xalan $version install rooted at <DIR>],
-        [XALAN_CFLAGS=" $XERCESC_CFLAGS -I$withval/xalan-c1.8 "
-	 XALAN_LIBS=" $XERCESC_LIBS -L$withval/lib -lxalan-c1_8_0 " 
+        [XALAN_CFLAGS=" $XERCESC_CFLAGS -I$withval/xalanc -I/usr/include/xercesc -DFedora13Xerces "
+	 XALAN_LIBS=" $XERCESC_LIBS -L$withval/lib -lxalan-c " 
 	 AM_FERRIS_INTERNAL_TRYRUN( [$XALAN_CFLAGS], [$XALAN_LIBS], 
 					[ $INCLUDES ], [$PROGRAM],
 					[have_xalan=yes], [have_xalan=no] )
 	])
 fi
+
+
+if test x"$have_xalan" = xno; then
+AC_ARG_WITH(xalan,
+        [  --with-xalan=DIR          use xalan $version install rooted at <DIR>],
+        [XALAN_CFLAGS=" $XERCESC_CFLAGS -I$withval/xalan-c "
+	 XALAN_LIBS=" $XERCESC_LIBS -L$withval/lib -lxalan-c " 
+	 AM_FERRIS_INTERNAL_TRYRUN( [$XALAN_CFLAGS], [$XALAN_LIBS], 
+					[ $INCLUDES ], [$PROGRAM],
+					[have_xalan=yes], [have_xalan=no] )
+	])
+fi
+
+if test x"$have_xalan" = xno; then
+AC_ARG_WITH(xalan,
+        [  --with-xalan=DIR          use xalan $version install rooted at <DIR>],
+        [XALAN_CFLAGS=" $XERCESC_CFLAGS -I$withval/xalanc "
+	 XALAN_LIBS=" $XERCESC_LIBS -L$withval/lib -lxalan-c " 
+	 AM_FERRIS_INTERNAL_TRYRUN( [$XALAN_CFLAGS], [$XALAN_LIBS], 
+					[ $INCLUDES ], [$PROGRAM],
+					[have_xalan=yes], [have_xalan=no] )
+	])
+fi
+
 
 # try to hit it directly.
 if test x"$have_xalan" = xno; then
@@ -1320,12 +1502,12 @@ dnl
 
 	AM_FERRIS_LIBTOOL_TRYLINK([
 
+#define BOOST_SPIRIT_USE_OLD_NAMESPACE
+
 		#include <fstream>
 
-		#include <boost/spirit.hpp>
+		#include <boost/spirit/include/classic.hpp>
 		using namespace boost::spirit;
-
-		#include <boost/spirit.hpp>
 		using namespace boost;
 
 		#include <boost/archive/text_oarchive.hpp>
@@ -1376,14 +1558,22 @@ AM_FERRIS_BOOST_INTERNAL_TRYLINK
 
 if test x"$have_boost" = xno; then
 	BOOST_CFLAGS=" -I/usr/local/include "
-	BOOST_LIBS=" -L/usr/local/lib -lboost_wserialization -lboost_serialization -lboost_regex "
+	BOOST_LIBS=" -L/usr/local/lib -lboost_system -lboost_wserialization -lboost_serialization -lboost_regex "
 	AM_FERRIS_BOOST_INTERNAL_TRYLINK
 fi
 
 if test x"$have_boost" = xno; then
 	if test "x$HAVE_STLPORT"="xy"; then
 		BOOST_CFLAGS=" $STLPORT_CFLAGS "
-		BOOST_LIBS=" $STLPORT_LIBS -lboost_wserialization-gcc-p  -lboost_serialization-gcc-p "
+		BOOST_LIBS=" $STLPORT_LIBS -lboost_system-gcc-p -lboost_wserialization-gcc-p  -lboost_serialization-gcc-p "
+		AM_FERRIS_BOOST_INTERNAL_TRYLINK
+	fi
+fi
+
+if test x"$have_boost" = xno; then
+	if test "x$HAVE_STLPORT"="xy"; then
+		BOOST_CFLAGS=" $STLPORT_CFLAGS "
+		BOOST_LIBS=" $STLPORT_LIBS -lboost_system-mt -lboost_wserialization-mt  -lboost_serialization-mt -lboost_regex-mt "
 		AM_FERRIS_BOOST_INTERNAL_TRYLINK
 	fi
 fi
@@ -1413,6 +1603,14 @@ AM_CONDITIONAL(HAVE_BOOST, test x"$have_boost" = xyes)
 AC_SUBST(BOOST_CFLAGS)
 AC_SUBST(BOOST_LIBS)
 ])
+
+AC_DEFUN(AM_FERRIS_BOOST_NEEDED,
+[
+  TESTING_FEATURE="Boost C++ library";
+  AM_FERRIS_BOOST( 1.33.1,
+          [ echo "Found boost library ..."; ],
+          [ AC_MSG_ERROR([ERROR: boost 1.33.1 (or 1.34.1 or maybe later) is required]); exit; ] )
+])			 
 
 
 dnl ######################################################################
@@ -2094,8 +2292,8 @@ if test x"$attempt_to_find_kde" = xno; then
 else
   if test x"$have_tested_for_kde" = x; then
 	AC_LANG_CPLUSPLUS
-	AC_ARG_WITH(qt, [  --with-qt               build with Qt utils. [autodetected]],,with_qt=yes)
-	if test x$with_qt = xyes ; then
+dnl	AC_ARG_WITH(qt, [  --with-qt               build with Qt utils. [autodetected]],,with_qt=yes)
+dnl	if test x$with_qt = xyes ; then
 
 		PKG_CHECK_MODULES(QTCORE, QtCore >= 4.4.3, [ have_qtcore=yes ],  [ have_qtcore=no ] )
 
@@ -2107,7 +2305,7 @@ else
 		echo "QT_CFLAGS: $QT_CFLAGS"
 		echo "QT_LIBS: $QT_LIBS"
 
-		KDE_INCLUDEDIR="`kde4-config --prefix`/include/kde4 "
+		KDE_INCLUDEDIR="`kde4-config --path include` "
 		KDE_LIBDIR="`kde4-config --prefix`/lib`kde4-config --libsuffix`/kde4/devel"
 		AC_ARG_WITH(kde-includedir,
 	        [  --with-kde-includedir=DIR          root directory containing KDE include files],
@@ -2169,8 +2367,8 @@ else
 			MIMETYPE_ENGINE_DESC="KDE"
 			MIMETYPE_ENGINE_CHOSEN=yes
 			FERRIS_HAVE_KDE=yes
-			AC_DEFINE(HAVE_KDE)
-			AC_DEFINE(FERRIS_HAVE_KDE)
+			AC_DEFINE(HAVE_KDE,1,[])
+			AC_DEFINE(FERRIS_HAVE_KDE,1,[])
 		else
 			echo "Couldn't link sample KDE4 application, disabling KDE support"
 			FERRIS_HAVE_KDE=no
@@ -2192,7 +2390,7 @@ else
 	AC_SUBST(QT_LIBS)
 	AC_SUBST(QT_CXXFLAGS)
 	AC_SUBST(QT_LDADD)
-  fi
+dnl  fi
 fi
 
 have_tested_for_kde=yes
@@ -2323,6 +2521,344 @@ dnl have_tested_for_kde3=yes
 
 dnl AM_CONDITIONAL(FERRIS_HAVE_KDE3, test x"$have_kde3" = xyes)
 dnl ])
+
+
+dnl #####################################################################
+dnl #####################################################################
+dnl #####################################################################
+dnl #####################################################################
+
+dnl AM_FERRIS_PLASMA([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND ]]])
+dnl
+dnl a CONDITIONAL FERRIS_HAVE_PLASMA is defined and the shell var have_plasma is either yes/no on exit
+dnl PLASMA_CFLAGS and PLASMA_LIBS are set and AC_SUBST()ed when library is found.
+dnl
+AC_DEFUN(AM_FERRIS_PLASMA,
+[dnl 
+dnl
+required_version=$1
+have_plasma=no
+
+
+AC_ARG_ENABLE(plasma-detection,
+[--disable-plasma-detection            Don't try to find PLASMA or QT],
+[
+  if test x$enableval = xyes; then
+	attempt_to_find_plasma=yes
+  else
+	attempt_to_find_plasma=no
+  fi
+])
+
+if test x"$attempt_to_find_plasma" = xno; then
+	FERRIS_HAVE_PLASMA=no
+	PLASMA_CFLAGS=""
+	PLASMA_LIBS=""
+    	AC_MSG_RESULT([compilation of PLASMA/Qt functions disabled])
+else
+  if test x"$have_tested_for_plasma" = x; then
+	AC_LANG_CPLUSPLUS
+
+		PLASMA_INCLUDEDIR=" -I`kde4-config --prefix`/include/kde4/plasma -I`kde4-config --prefix`/include/kde4/KDE -I`kde4-config --prefix`/include/KDE "
+		PLASMA_LIBDIR="`kde4-config --prefix`/lib`plasma4-config --libsuffix` "
+		AC_ARG_WITH(plasma-includedir,
+	        [  --with-plasma-includedir=DIR          root directory containing PLASMA include files],
+	        	[PLASMA_INCLUDEDIR=" -I$withval "
+		])
+		AC_ARG_WITH(plasma-libdir,
+	        [  --with-plasma-libdir=DIR          directory continaing PLASMA libs],
+	        	[PLASMA_LIBDIR=" -I$withval "
+		])
+
+		PLASMA4_LINK_CFLAGS_PREFIX=" -L/usr/lib64/plasma4/devel "
+		echo "Have PLASMA_LIBDIR:$PLASMA_LIBDIR"
+		PLASMALIB_MINUS_L_OPTION=" -L$PLASMA_LIBDIR "
+		if test x"$PLASMA_LIBDIR" = "x/usr/lib"; then
+			echo "Standard PLASMA Libdir..."
+			PLASMALIB_MINUS_L_OPTION=" "
+			PLASMA4_LINK_CFLAGS_PREFIX=" -L/usr/lib/plasma4/devel "
+		fi
+		if test x"$PLASMA_LIBDIR" = "x/usr/lib64"; then
+			echo "Standard PLASMA Libdir..."
+			PLASMALIB_MINUS_L_OPTION=" "
+		fi
+		PLASMA_CFLAGS=" $PLASMA_CFLAGS $PLASMA_INCLUDEDIR $QT_CFLAGS $KDE_CFLAGS "
+		PLASMA_LIBS=" $PLASMA_LIBS  $PLASMALIB_MINUS_L_OPTION -lplasma $QT_LIBS $KDE_LIBS "
+
+		CXXFLAGS_cache=$CXXFLAGS
+		CXXFLAGS="$CXXFLAGS $PLASMA_CFLAGS"
+		LDFLAGS_cache=$LDFLAGS
+		LDFLAGS="$LDFLAGS $PLASMA_LIBS"
+
+		echo "trying to link a PLASMA client..."
+
+		AC_TRY_LINK([
+		#include <iostream>
+		#include <qapplication.h>
+		#include <kmimetype.h>
+		#include <kapplication.h>
+                #include <Plasma/Applet>
+
+		using namespace std;
+        	],
+		[
+		KApplication a( false );
+    
+                KUrl u;
+                u.setPath( "/tmp" );
+                KMimeType::Ptr type = KMimeType::findByUrl( u );
+		cerr << type->name().toUtf8().data() << endl;
+		return 0;
+		],
+       		[have_plasma=yes], [have_plasma=no])
+
+		LDFLAGS=$LDFLAGS_cache
+		CXXFLAGS=$CXXFLAGS_cache
+
+		if test x"$have_plasma" = xyes; then
+			echo "Building plasma support funtions"
+			FERRIS_HAVE_PLASMA=yes
+			AC_DEFINE(HAVE_PLASMA,1,[])
+			AC_DEFINE(FERRIS_HAVE_PLASMA,1,[])
+		else
+			echo "Couldn't link sample PLASMA4 application, disabling PLASMA support"
+			FERRIS_HAVE_PLASMA=no
+			PLASMA_CFLAGS=""
+			PLASMA_LIBS=""
+		fi
+
+	AC_LANG_C
+	AC_SUBST(PLASMA_CFLAGS)
+	AC_SUBST(PLASMA_LIBS)
+  fi
+fi
+
+have_tested_for_plasma=yes
+AM_CONDITIONAL(FERRIS_HAVE_PLASMA, test x"$have_plasma" = xyes)
+])
+
+dnl #####################################################################
+dnl #####################################################################
+dnl #####################################################################
+dnl #####################################################################
+
+dnl AM_FERRIS_SANE([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND ]]])
+dnl
+dnl a CONDITIONAL FERRIS_HAVE_SANE is defined and the shell var have_sane is either yes/no on exit
+dnl SANE_CFLAGS and SANE_LIBS are set and AC_SUBST()ed when library is found.
+dnl
+AC_DEFUN(AM_FERRIS_KSANE,
+[dnl 
+dnl
+required_version=$1
+have_sane=no
+
+
+AC_ARG_ENABLE(sane-detection,
+[--disable-sane-detection            Don't try to find SANE or libksane],
+[
+  if test x$enableval = xyes; then
+	attempt_to_find_sane=yes
+  else
+	attempt_to_find_sane=no
+  fi
+])
+
+if test x"$attempt_to_find_sane" = xno; then
+	FERRIS_HAVE_SANE=no
+	FERRIS_HAVE_KSANE=no
+	SANE_CFLAGS=""
+	SANE_LIBS=""
+	KSANE_CFLAGS=""
+	KSANE_LIBS=""
+    	AC_MSG_RESULT([compilation of SANE and ksane functions disabled])
+else
+  if test x"$have_tested_for_sane" = x; then
+	AC_LANG_CPLUSPLUS
+
+		PKG_CHECK_MODULES(QTGUI, QtGui >= 4.4.3, [ have_qtgui=yes ],  [ have_qtgui=no ] )
+		QTGUI_CFLAGS=" $QTGUI_CFLAGS -I/usr/include/Qt " 
+		
+		SANE_INCLUDEDIR=" -I`kde4-config --prefix`/include/kde4 "
+		SANE_LIBDIR=""
+		AC_ARG_WITH(sane-includedir,
+	        [  --with-sane-includedir=DIR          root directory containing SANE include files],
+	        	[SANE_INCLUDEDIR=" -I$withval "
+		])
+		AC_ARG_WITH(sane-libdir,
+	        [  --with-sane-libdir=DIR          directory continaing SANE libs],
+	        	[SANE_LIBDIR=" -I$withval "
+		])
+
+		echo "Have SANE_LIBDIR:$SANE_LIBDIR"
+		SANELIB_MINUS_L_OPTION=" -L$SANE_LIBDIR "
+		if test x"$SANE_LIBDIR" = "x/usr/lib"; then
+			echo "Standard SANE Libdir..."
+			SANELIB_MINUS_L_OPTION=" "
+		fi
+		if test x"$SANE_LIBDIR" = "x/usr/lib64"; then
+			echo "Standard SANE Libdir..."
+			SANELIB_MINUS_L_OPTION=" "
+		fi
+		SANE_CFLAGS=" $QT_CFLAGS $QTGUI_CFLAGS $KDE_CFLAGS "
+		SANE_LIBS=" $QT_LIBS $QTGUI_LIBS -lksane $KDE_LIBS "
+
+		CXXFLAGS_cache=$CXXFLAGS
+		CXXFLAGS="$CXXFLAGS $SANE_CFLAGS"
+		LDFLAGS_cache=$LDFLAGS
+		LDFLAGS="$LDFLAGS $SANE_LIBS"
+
+		echo "trying to link a SANE client..."
+
+		AC_TRY_LINK([
+		#include <libksane/ksane.h>
+		#include <QApplication>
+		#include <QMap>
+
+		#include <iostream>
+		#include <sstream>
+		using namespace std;
+        	],
+		[
+                int argc = 0;
+                char** argv = 0;
+                QApplication app( argc, argv );
+
+ 		KSaneIface::KSaneWidget *m_ksanew;
+                m_ksanew = new KSaneIface::KSaneWidget( 0 );
+ 		if ( !m_ksanew->openDevice("test"))
+		{
+                   m_ksanew->initGetDeviceList();
+                }
+		return 0;
+		],
+       		[have_sane=yes], [have_sane=no])
+
+		LDFLAGS=$LDFLAGS_cache
+		CXXFLAGS=$CXXFLAGS_cache
+
+		if test x"$have_sane" = xyes; then
+			echo "Building sane support funtions"
+			FERRIS_HAVE_SANE=yes
+			AC_DEFINE(HAVE_SANE,1,[])
+			AC_DEFINE(FERRIS_HAVE_SANE,1,[])
+			KSANE_CFLAGS=" $SANE_CFLAGS "
+			KSANE_LIBS=" $SANE_LIBS "
+		else
+			echo "Couldn't link sample SANE4 application, disabling SANE support"
+			FERRIS_HAVE_SANE=no
+			SANE_CFLAGS=""
+			SANE_LIBS=""
+		fi
+
+	AC_LANG_C
+	AC_SUBST(SANE_CFLAGS)
+	AC_SUBST(SANE_LIBS)
+	AC_SUBST(KSANE_CFLAGS)
+	AC_SUBST(KSANE_LIBS)
+  fi
+fi
+
+have_tested_for_sane=yes
+AM_CONDITIONAL(FERRIS_HAVE_SANE, test x"$have_sane" = xyes)
+AM_CONDITIONAL(FERRIS_HAVE_KSANE, test x"$have_sane" = xyes)
+])
+
+
+dnl #####################################################################
+dnl #####################################################################
+dnl #####################################################################
+dnl #####################################################################
+
+dnl AM_FERRIS_QPRINTER([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND ]]])
+dnl
+dnl a CONDITIONAL FERRIS_HAVE_QPRINTER is defined and the shell var have_qprinter is either yes/no on exit
+dnl QPRINTER_CFLAGS and QPRINTER_LIBS are set and AC_SUBST()ed when library is found.
+dnl
+AC_DEFUN(AM_FERRIS_QPRINTER,
+[dnl 
+dnl
+required_version=$1
+have_qprinter=no
+
+
+AC_ARG_ENABLE(qprinter-detection,
+[--disable-qprinter-detection            Don't try to build support for printing to a QPrinter],
+[
+  if test x$enableval = xyes; then
+	attempt_to_find_qprinter=yes
+  else
+	attempt_to_find_qprinter=no
+  fi
+])
+
+if test x"$attempt_to_find_qprinter" = xno; then
+	FERRIS_HAVE_QPRINTER=no
+	QPRINTER_CFLAGS=""
+	QPRINTER_LIBS=""
+    	AC_MSG_RESULT([compilation of QPRINTER functions disabled])
+else
+  if test x"$have_tested_for_qprinter" = x; then
+	AC_LANG_CPLUSPLUS
+
+		PKG_CHECK_MODULES(QTGUI, QtGui >= 4.4.3, [ have_qtgui=yes ],  [ have_qtgui=no ] )
+		QTGUI_CFLAGS=" $QTGUI_CFLAGS " 
+		
+		QPRINTER_CFLAGS=" $QTGUI_CFLAGS "
+		QPRINTER_LIBS=" $QTGUI_LIBS "
+
+		CXXFLAGS_cache=$CXXFLAGS
+		CXXFLAGS="$CXXFLAGS $QPRINTER_CFLAGS"
+		LDFLAGS_cache=$LDFLAGS
+		LDFLAGS="$LDFLAGS $QPRINTER_LIBS"
+
+		echo "trying to link a QPrinter client..."
+
+		AC_TRY_LINK([
+#include <QApplication>
+#include <QTextDocument>
+#include <QPrinterInfo>
+#include <iostream>
+		using namespace std;
+        	],
+		[
+                int argc = 0;
+                char** argv = 0;
+                QApplication app( argc, argv );
+
+                QList<QPrinterInfo> pi = QPrinterInfo:: availablePrinters();
+                QTextDocument *document = new QTextDocument( 0 );
+		return 0;
+		],
+       		[have_qprinter=yes], [have_qprinter=no])
+
+		LDFLAGS=$LDFLAGS_cache
+		CXXFLAGS=$CXXFLAGS_cache
+
+		if test x"$have_qprinter" = xyes; then
+			echo "Building qprinter support funtions"
+			FERRIS_HAVE_QPRINTER=yes
+			AC_DEFINE(HAVE_QPRINTER,1,[])
+			AC_DEFINE(FERRIS_HAVE_QPRINTER,1,[])
+			QPRINTER_CFLAGS=" $QPRINTER_CFLAGS "
+			QPRINTER_LIBS=" $QPRINTER_LIBS "
+		else
+			echo "Couldn't link sample QPRINTER4 application, disabling QPRINTER support"
+			FERRIS_HAVE_QPRINTER=no
+			QPRINTER_CFLAGS=""
+			QPRINTER_LIBS=""
+		fi
+
+	AC_LANG_C
+	AC_SUBST(QPRINTER_CFLAGS)
+	AC_SUBST(QPRINTER_LIBS)
+  fi
+fi
+
+have_tested_for_qprinter=yes
+AM_CONDITIONAL(FERRIS_HAVE_QPRINTER, test x"$have_qprinter" = xyes)
+])
+
 
 
 dnl #####################################################################
@@ -2906,6 +3442,101 @@ dnl alloca (in public macro) and MinGW
 ])
 
 
+dnl ######################################################################
+dnl ######################################################################
+dnl ######################################################################
+dnl # inspired by FONTFORGE_PLATFORM_SPECIFICS
+dnl ############
+AC_DEFUN_ONCE([LIBFERRIS_PLATFORM_SPECIFICS],
+[
+cd ${srcdir}; absolute_srcdir=`pwd`; cd -;
+
+
+
+m4_define([default_SDK],[/])
+m4_define([default_CARBON],[System/Library/Frameworks/Carbon.framework/Carbon])
+m4_define([default_COCOA],[/System/Library/Frameworks/Cocoa.framework/Cocoa])
+m4_define([default_CORESERVICES],[System/Library/Frameworks/CoreServices.framework/CoreServices])
+
+echo "plaform specifics for host: $host "
+AS_CASE([$host],
+   [*-apple-darwin*],[
+      libferris_ismac="yes"
+      AC_DEFINE([_Keyboard],[1],[Platform specific stuff])
+      AC_DEFINE([__Mac],[1],[Platform specific stuff])
+      AC_DEFINE([PLATFORM_OSX],[1],[Platform specific stuff])
+   ],
+
+   [:]  dnl DEFAULT AS_CASE
+
+) dnl END AS_CASE
+
+AM_CONDITIONAL([PLATFORM_OSX],[test x"${libferris_ismac}" = xyes])
+
+
+AC_ARG_ENABLE(debug,
+[--enable-debug            compile with -g and -O0 debug information],
+[
+  if test x$enableval = xyes; then
+	echo setting debug mode to on...;
+        CFLAGS="    $CFLAGS   -O0 -g -pipe "; #-Wall ";
+	CXXFLAGS="  $CXXFLAGS -O0 -g -pipe "; #-Wall ";
+  else
+	echo setting debug mode to off...
+  fi
+])
+
+AC_ARG_ENABLE(hiddensymbols,
+[--enable-hiddensymbols            use hidden symbols for private APIs],
+[
+  if test x$enableval = xyes; then
+	echo setting hidden symbol support...;
+        CFLAGS="    $CFLAGS   -DGCC_HASCLASSVISIBILITY -fvisibility=default -fvisibility-inlines-hidden ";
+	CXXFLAGS="  $CXXFLAGS -DGCC_HASCLASSVISIBILITY -fvisibility=default -fvisibility-inlines-hidden ";
+	AC_DEFINE(GCC_HASCLASSVISIBILITY)
+  fi
+])
+
+
+AC_ARG_ENABLE(profile,
+[--enable-profile            compile with profile debug information],
+[
+  if test x$enableval = xyes; then
+     echo setting profile mode to on...
+     CFLAGS="   $CFLAGS   -O0 -g -pg -fprofile-arcs -ftest-coverage "; 
+     CXXFLAGS=" $CXXFLAGS -O0 -g -pg -fprofile-arcs -ftest-coverage "; 
+  else
+     echo setting profile mode to off...
+  fi
+])
+
+AC_ARG_ENABLE(wrapdebug,
+[--enable-wrapdebug            compile with -g and -O0 debug information],
+[
+  if test x$enableval = xyes; then
+	echo setting debug mode to on...;
+	CFLAGS="   $CFLAGS   -O0 -g -pipe -Wall "; 
+	CXXFLAGS=" $CXXFLAGS -O0 -g -pipe -Wall "; 
+  else
+	echo setting debug mode to off...
+  fi
+])
+
+
+])
+
+AC_DEFUN([LIBFERRIS_PLATFORM_SUBST_COMPILER_FLAGS],
+[
+   AC_SUBST(CFLAGS)
+   AC_SUBST(CPPFLAGS)
+   AC_SUBST(LDFLAGS)
+   AC_SUBST(CXXFLAGS)
+   AC_SUBST(CXXCPPFLAGS)
+])
+
+
+dnl ######################################################################
+dnl ######################################################################
 dnl ######################################################################
 dnl ######################################################################
 dnl ######################################################################
